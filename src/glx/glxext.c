@@ -996,7 +996,7 @@ __glXInitialize(Display * dpy)
    Bool glx_direct = !debug_get_bool_option("LIBGL_ALWAYS_INDIRECT", false);
    Bool glx_accel = !debug_get_bool_option("LIBGL_ALWAYS_SOFTWARE", false);
    Bool dri3 = !debug_get_bool_option("LIBGL_DRI3_DISABLE", false);
-   Bool kopper = !debug_get_bool_option("LIBGL_KOPPER_DISABLE", false);
+   Bool kopper = !glx_kopper_disabled();
 
    if (env && !strcmp(env, "zink"))
       glx_driver |= GLX_DRIVER_ZINK_YES;
@@ -1024,7 +1024,7 @@ __glXInitialize(Display * dpy)
          if (!dri3_err) {
             glx_driver |= GLX_DRIVER_DRI3;
             /* nouveau wants to fallback to zink so if we get a screen enable try_zink */
-            if (!debug_get_bool_option("LIBGL_KOPPER_DISABLE", false))
+            if (!glx_kopper_disabled())
                glx_driver |= GLX_DRIVER_ZINK_INFER;
          }
       }

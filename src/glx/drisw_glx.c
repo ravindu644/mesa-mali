@@ -625,7 +625,7 @@ driswCreateScreen(int screen, struct glx_display *priv, enum glx_driver glx_driv
    __GLXDRIscreen *psp;
    struct drisw_screen *psc;
    const __DRIextension **loader_extensions_local;
-   bool kopper_disable = debug_get_bool_option("LIBGL_KOPPER_DISABLE", false);
+   bool kopper_disable = glx_kopper_disabled();
 
    /* this is only relevant if zink bits are set */
    glx_driver &= (GLX_DRIVER_ZINK_INFER | GLX_DRIVER_ZINK_YES);

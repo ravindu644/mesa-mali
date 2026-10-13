@@ -590,7 +590,9 @@ dri2_load_driver(_EGLDisplay *disp)
 {
    struct dri2_egl_display *dri2_dpy = dri2_egl_display(disp);
 
-   dri2_dpy->kopper = disp->Options.Zink && !debug_get_bool_option("LIBGL_KOPPER_DISABLE", false);
+   bool x11 = disp->Platform == _EGL_PLATFORM_X11 || disp->Platform == _EGL_PLATFORM_XCB;
+   dri2_dpy->kopper = disp->Options.Zink && !debug_get_bool_option("LIBGL_KOPPER_DISABLE", false) &&
+                      !(x11 && debug_get_bool_option("LIBGL_KOPPER_DISABLE_X11", false));
    dri2_dpy->kopper_without_modifiers = dri2_dpy->kopper && debug_get_bool_option("LIBGL_KOPPER_DRI2", false);
    dri2_dpy->swrast = (disp->Options.ForceSoftware && !dri2_dpy->kopper && strcmp(dri2_dpy->driver_name, "vmwgfx")) ||
                       !dri2_dpy->driver_name || strstr(dri2_dpy->driver_name, "swrast");
