@@ -526,7 +526,7 @@ dri3_create_screen(int screen, struct glx_display * priv, bool driver_name_is_in
    }
    psc->base.driverName = driverName;
 
-   if (!strcmp(driverName, "zink") && !debug_get_bool_option("LIBGL_KOPPER_DISABLE", false)) {
+   if (!strcmp(driverName, "zink") && !glx_kopper_disabled()) {
       *return_zink = true;
       goto handle_error;
    }

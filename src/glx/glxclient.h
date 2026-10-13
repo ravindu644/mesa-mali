@@ -804,4 +804,15 @@ extern int __glXGetDrawableAttribute(Display * dpy, GLXDrawable drawable,
 }
 #endif
 
+#include "util/u_debug.h"
+
+/* LIBGL_KOPPER_DISABLE, or LIBGL_KOPPER_DISABLE_X11 for drivers whose Vulkan has no X11
+ * surface: zink then presents through the DRI3 loader, while EGL on Wayland keeps kopper. */
+static inline bool
+glx_kopper_disabled(void)
+{
+   return debug_get_bool_option("LIBGL_KOPPER_DISABLE", false) ||
+          debug_get_bool_option("LIBGL_KOPPER_DISABLE_X11", false);
+}
+
 #endif /* !__GLX_client_h__ */

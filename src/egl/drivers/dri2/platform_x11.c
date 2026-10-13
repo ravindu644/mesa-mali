@@ -2087,7 +2087,8 @@ dri2_initialize_x11(_EGLDisplay *disp)
 {
    enum dri2_egl_driver_fail status = DRI2_EGL_DRIVER_FAILED;
    if (disp->Options.ForceSoftware ||
-       (disp->Options.Zink && !debug_get_bool_option("LIBGL_KOPPER_DISABLE", false)))
+       (disp->Options.Zink && !debug_get_bool_option("LIBGL_KOPPER_DISABLE", false) &&
+        !debug_get_bool_option("LIBGL_KOPPER_DISABLE_X11", false)))
       return dri2_initialize_x11_swrast(disp);
 
 #ifdef HAVE_LIBDRM
