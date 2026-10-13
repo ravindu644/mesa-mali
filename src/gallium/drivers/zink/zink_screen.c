@@ -901,8 +901,11 @@ zink_init_screen_caps(struct zink_screen *screen)
       (screen->info.have_vulkan12 && screen->info.feats11.shaderDrawParameters) ||
       screen->info.have_KHR_shader_draw_parameters;
 
-   caps->vertex_element_instance_divisor =
-      screen->info.have_EXT_vertex_attribute_divisor;
+   /* Without VK_EXT_vertex_attribute_divisor the binding's instance input rate still gives
+    * divisor 1, which is what nearly every GL/GLES instancing user asks for, and GLES 3.0
+    * depends on ARB_instanced_arrays. Larger divisors are clamped to 1 (zink_state.c).
+    * ponytail: emulate divisors > 1 in the vertex shader if an app ever needs them. */
+   caps->vertex_element_instance_divisor = true;
 
    caps->max_vertex_streams = screen->info.tf_props.maxTransformFeedbackStreams;
 

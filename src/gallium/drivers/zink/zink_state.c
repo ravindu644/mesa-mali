@@ -71,10 +71,19 @@ zink_create_vertex_elements_state(struct pipe_context *pctx,
       ves->bindings[binding].binding = binding;
       ves->bindings[binding].inputRate = elem->instance_divisor ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
 
-      assert(!elem->instance_divisor || zink_screen(pctx->screen)->info.have_EXT_vertex_attribute_divisor);
-      if (elem->instance_divisor > screen->info.vdiv_props.maxVertexAttribDivisor)
-         debug_printf("zink: clamping instance divisor %u to %u\n", elem->instance_divisor, screen->info.vdiv_props.maxVertexAttribDivisor);
-      ves->divisor[binding] = MIN2(elem->instance_divisor, screen->info.vdiv_props.maxVertexAttribDivisor);
+      if (!screen->info.have_EXT_vertex_attribute_divisor) {
+         /* the instance input rate alone is divisor 1; no divisor state to chain */
+         static bool warned;
+         if (elem->instance_divisor > 1 && !warned) {
+            mesa_logw("zink: instance divisor %u treated as 1, the driver has no VK_EXT_vertex_attribute_divisor", elem->instance_divisor);
+            warned = true;
+         }
+         ves->divisor[binding] = 0;
+      } else {
+         if (elem->instance_divisor > screen->info.vdiv_props.maxVertexAttribDivisor)
+            debug_printf("zink: clamping instance divisor %u to %u\n", elem->instance_divisor, screen->info.vdiv_props.maxVertexAttribDivisor);
+         ves->divisor[binding] = MIN2(elem->instance_divisor, screen->info.vdiv_props.maxVertexAttribDivisor);
+      }
 
       VkFormat format;
       if (zink_get_format_props(screen, elem->src_format)->bufferFeatures & VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT)
