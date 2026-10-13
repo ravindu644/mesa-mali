@@ -5255,8 +5255,26 @@ update_io_var_state(nir_intrinsic_instr *intr, struct rework_io_state *ris)
     */
    if (ris->component_mask &&
        (!(ris->component_mask & cmask) || ris->fb_fetch_output != sem.fb_fetch_output || ris->dual_source_blend_index != sem.dual_source_blend_index)) {
-      ris->ignored_component_mask |= cmask;
-      return;
+      /* A fragment input read as .xy and .w would become two variables at one location,
+       * the second with a Component decoration. The Mali proprietary compiler reads such a
+       * split input wrongly (fixed-function texture2DProj's .w, so textures sample at the
+       * wrong coordinates). Interpolated float components of one size fill the gap instead:
+       * reading a wider vector is valid everywhere. */
+      bool merge = ris->stage == MESA_SHADER_FRAGMENT && ris->mode == nir_var_shader_in &&
+                   is_load && is_interp && !(ris->component_mask & cmask) &&
+                   ris->fb_fetch_output == sem.fb_fetch_output &&
+                   ris->dual_source_blend_index == sem.dual_source_blend_index &&
+                   ris->arrayed_io == io_instr_is_arrayed(intr) &&
+                   ris->bit_size == intr->def.bit_size &&
+                   nir_alu_type_get_base_type(ris->type) == nir_type_float &&
+                   nir_alu_type_get_base_type(nir_intrinsic_dest_type(intr)) == nir_type_float;
+      if (!merge) {
+         ris->ignored_component_mask |= cmask;
+         return;
+      }
+      cmask = BITFIELD_RANGE(MIN2(ffs(ris->component_mask), ffs(cmask)) - 1,
+                             MAX2(util_last_bit(ris->component_mask), util_last_bit(cmask)) -
+                             (MIN2(ffs(ris->component_mask), ffs(cmask)) - 1));
    }
 
    assert(!ris->indirect_only || sem.num_slots > 1);
