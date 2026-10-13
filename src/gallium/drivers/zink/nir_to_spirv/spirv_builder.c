@@ -281,6 +281,7 @@ spirv_builder_emit_vertex(struct spirv_builder *b, uint32_t stream, bool multist
    unsigned words = 1;
    SpvOp op = SpvOpEmitVertex;
    if (multistream) {
+      spirv_builder_emit_cap(b, SpvCapabilityGeometryStreams);
       op = SpvOpEmitStreamVertex;
       words++;
    }
@@ -295,6 +296,10 @@ spirv_builder_end_primitive(struct spirv_builder *b, uint32_t stream, bool multi
 {
    unsigned words = 1;
    SpvOp op = SpvOpEndPrimitive;
+
+   if (multistream)
+      spirv_builder_emit_cap(b, SpvCapabilityGeometryStreams);
+
    if (multistream || stream > 0) {
       op = SpvOpEndStreamPrimitive;
       words++;
@@ -365,6 +370,8 @@ void
 spirv_builder_emit_stream(struct spirv_builder *b, SpvId target, int stream)
 {
    uint32_t args[] = { stream };
+   /* the Stream decoration needs it; callers only decorate non-zero streams */
+   spirv_builder_emit_cap(b, SpvCapabilityGeometryStreams);
    emit_decoration(b, target, SpvDecorationStream, args, ARRAY_SIZE(args));
 }
 
